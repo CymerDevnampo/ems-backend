@@ -23,12 +23,14 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        return response()->json(['message' => 'User registered']);
+        return response()->json([
+            'message' => 'User registered successfully.',
+        ]);
     }
 
     public function login(Request $request)
     {
-
+        // dd($request->all());
         $request->validate([
             'email' => 'required|string|email',
             'password' => 'required|string',

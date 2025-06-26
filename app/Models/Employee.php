@@ -9,6 +9,7 @@ class Employee extends Model
     protected $table = 'employee';
 
     protected $fillable = [
+        'created_by',
         'user_id',
         'employee_number',
         'address',
@@ -16,9 +17,17 @@ class Employee extends Model
         'age',
     ];
 
+    // protected $hidden = ['id', 'user_id', 'encrypted_id'];
+    protected $hidden = ['id', 'user_id',];
+
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function employeeDetails()
