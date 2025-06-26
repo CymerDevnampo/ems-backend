@@ -21,7 +21,7 @@ class EmployeeController extends Controller
             $emp->encrypted_id = encrypt($emp->id);
             return $emp;
         });
-        
+
         return response()->json($employee);
     }
 
@@ -81,7 +81,7 @@ class EmployeeController extends Controller
         $employeeDetails->hdmf = $request->hdmf;
         $employeeDetails->save();
 
-        // Mail::to($user->email)->send(new SendCredentials($user->email, $randomPassword));
+        Mail::to($user->email)->send(new SendCredentials($user->email, $randomPassword));
 
         return response()->json(['message' => 'Employee added successfully.'], 200);
     }
