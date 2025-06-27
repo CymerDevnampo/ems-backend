@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\EmployeesExport;
 use DB;
 use App\Models\User;
 use App\Models\Employee;
@@ -11,12 +12,18 @@ use App\Mail\SendCredentials;
 use App\Models\EmployeeDetails;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use Maatwebsite\Excel\Facades\Excel;
 
 class EmployeeController extends Controller
 {
     public function getEmployee()
     {
-        $employee = Employee::with('user', 'employeeDetails', 'createdBy')->where('created_by', Auth::user()->id)->paginate(10);
+        $userRoleId = Auth::user()->role_id;
+        if ($userRoleId === 1) {
+            $employee = Employee::with('user.role', 'employeeDetails.position', 'createdBy')->paginate(10);
+        } else {
+            $employee = Employee::with('user.role', 'employeeDetails.position', 'createdBy')->where('created_by', Auth::user()->id)->paginate(10);
+        }
 
         $employee->getCollection()->transform(function ($emp) {
             $emp->encrypted_id = encrypt($emp->id);
@@ -33,7 +40,7 @@ class EmployeeController extends Controller
 
         // dd($request->position);
         $validatedData = $request->validate([
-            'role' => $authUser->role == 1 ? 'required' : 'nullable',
+            'role_id' => $authUser->role_id == 1 ? 'required' : 'nullable',
             'name' => 'required|string',
             'email' => 'required|email|unique:users',
             'address' => 'required|string',
@@ -52,7 +59,7 @@ class EmployeeController extends Controller
         $randomPassword = Str::random(10);
 
         $user = new User();
-        $user->role = $authUser->role == 1 ? $request->role : 3;
+        $user->role_id = $authUser->role_id == 1 ? $request->role_id : 3;
         $user->name = $request->name;
         $user->email = $request->email;
         $user->password = bcrypt($randomPassword);
@@ -111,7 +118,7 @@ class EmployeeController extends Controller
         // dd($decryptID);
 
         $validatedData = $request->validate([
-            'role' => 'required',
+            'role_id' => 'required',
             'name' => 'required|string',
             'email' => 'required|email|unique:users,email,' . $employee->user->id,
             'address' => 'required|string',
@@ -127,7 +134,7 @@ class EmployeeController extends Controller
         ]);
 
         $user = $employee->user;
-        $user->role = $request->role;
+        $user->role_id = $request->role_id;
         $user->name = $request->name;
         $user->email = $request->email;
         $user->save();
@@ -174,5 +181,9 @@ class EmployeeController extends Controller
         }
     }
 
+    public function downloadEmployees()
+    {
+        return Excel::download(new EmployeesExport, 'employees.xlsx');
+    }
 
 }

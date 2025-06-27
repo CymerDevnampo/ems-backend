@@ -20,7 +20,7 @@ class UserSeeder extends Seeder
 
         $users = [
             [
-                'role' => 1,
+                'role_id' => 1,
                 'name' => 'Principal Admin',
                 'email' => 'principal@cymer.com',
                 'email_verified_at' => Carbon::now(),

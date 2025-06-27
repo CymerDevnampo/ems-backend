@@ -23,4 +23,9 @@ class EmployeeDetails extends Model
     {
         return $this->belongsTo(Employee::class, 'employee_id');
     }
+
+    public function position()
+    {
+        return $this->belongsTo(Position::class, 'position'); 
+    }
 }

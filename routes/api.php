@@ -35,4 +35,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 
     Route::get('/get/roles', [RoleController::class, 'getRoles'])->name('get.roles');
 
+    Route::get('/download/employees', [EmployeeController::class, 'downloadEmployees'])->name('download.employees');
+
+
 });
