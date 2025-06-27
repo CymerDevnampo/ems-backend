@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\SendCredentials;
-use App\Models\EmployeeDetails;
+use DB;
 use App\Models\User;
 use App\Models\Employee;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use App\Mail\SendCredentials;
+use App\Models\EmployeeDetails;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 
 class EmployeeController extends Controller
@@ -27,14 +28,19 @@ class EmployeeController extends Controller
 
     public function storeEmployee(Request $request)
     {
+
+        $authUser = Auth::user();
+
+        // dd($request->position);
         $validatedData = $request->validate([
+            'role' => $authUser->role == 1 ? 'required' : 'nullable',
             'name' => 'required|string',
             'email' => 'required|email|unique:users',
             'address' => 'required|string',
             'birthday' => 'required|string',
             'age' => 'required|string',
             'department' => 'required|string',
-            'position' => 'required|string',
+            'position' => 'required',
             'company' => 'required|string',
             'sss' => 'required|string',
             'tin' => 'required|string',
@@ -42,9 +48,11 @@ class EmployeeController extends Controller
             'hdmf' => 'required|string',
         ]);
 
+        $decryptPositionID = decrypt($request->position);
         $randomPassword = Str::random(10);
 
         $user = new User();
+        $user->role = $authUser->role == 1 ? $request->role : 3;
         $user->name = $request->name;
         $user->email = $request->email;
         $user->password = bcrypt($randomPassword);
@@ -73,7 +81,7 @@ class EmployeeController extends Controller
         $employeeDetails = new EmployeeDetails();
         $employeeDetails->employee_id = $employee->id;
         $employeeDetails->department = $request->department;
-        $employeeDetails->position = $request->position;
+        $employeeDetails->position = $decryptPositionID;
         $employeeDetails->company = $request->company;
         $employeeDetails->sss = $request->sss;
         $employeeDetails->tin = $request->tin;
@@ -91,7 +99,7 @@ class EmployeeController extends Controller
         // dd($id);
 
         $decryptID = decrypt($id);
-        $employee = Employee::with('user', 'employeeDetails')->find($decryptID);
+        $employee = Employee::with('user.role', 'employeeDetails')->find($decryptID);
         return response()->json($employee);
     }
 
@@ -100,16 +108,17 @@ class EmployeeController extends Controller
         $decryptID = decrypt($id);
         $employee = Employee::with('user', 'employeeDetails', 'createdBy')->findOrFail($decryptID);
 
-        // dd($decryptID); 
+        // dd($decryptID);
 
         $validatedData = $request->validate([
+            'role' => 'required',
             'name' => 'required|string',
             'email' => 'required|email|unique:users,email,' . $employee->user->id,
             'address' => 'required|string',
             'birthday' => 'required|string',
             'age' => 'required|string',
             'department' => 'required|string',
-            'position' => 'required|string',
+            'position' => 'required',
             'company' => 'required|string',
             'sss' => 'required|string',
             'tin' => 'required|string',
@@ -118,6 +127,7 @@ class EmployeeController extends Controller
         ]);
 
         $user = $employee->user;
+        $user->role = $request->role;
         $user->name = $request->name;
         $user->email = $request->email;
         $user->save();
@@ -138,6 +148,30 @@ class EmployeeController extends Controller
         $details->save();
 
         return response()->json(['message' => 'Employee updated successfully']);
+    }
+
+    public function deleteEmployee($id)
+    {
+        $decryptID = decrypt($id);
+
+        DB::beginTransaction();
+
+        try {
+            $employee = Employee::findOrFail($decryptID);
+            $user = $employee->user;
+
+            $employee->employeeDetails()->delete();
+
+            $employee->delete();
+
+            $user->delete();
+
+            DB::commit();
+            return response()->json(['message' => 'Employee deleted successfully.']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Failed to delete employee.'], 500);
+        }
     }
 
 
