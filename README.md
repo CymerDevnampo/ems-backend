@@ -16,6 +16,8 @@
 
 -   composer install
 
+-   php artisan storage:link
+
 -   php artisan key:generate
 
 -   php artisan migrate:fresh --seed
