@@ -22,6 +22,12 @@
 
 -   php artisan serve
 
+# Account
+
+## Pricipal Admin
+- username: principal@cymer.com
+- password: principal@cymer.com
+
 ## Notes
 
 -   dont modify the .env cause I set it up all based on the installation I made above, but feel free to modify
