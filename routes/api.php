@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\PositionController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RoleController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -37,5 +38,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 
     Route::get('/download/employees', [EmployeeController::class, 'downloadEmployees'])->name('download.employees');
 
-
+    Route::get('/get/profile', [ProfileController::class, 'getProfile'])->name('get.profile');
+    Route::post('/profile/update', [ProfileController::class, 'updateProfile'])->name('update.profile');
+    Route::post('/profile/password', [ProfileController::class, 'updatePassword'])->name('update.password');
 });
